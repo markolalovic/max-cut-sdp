@@ -1,0 +1,128 @@
+\documentclass[twoside,leqno,twocolumn]{article}
+\usepackage[letterpaper]{geometry}
+\usepackage{ltexpprt}
+
+\usepackage{fancyhdr}
+\usepackage{afterpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[strings]{underscore}
+\usepackage{bm}
+\usepackage{xcolor}
+\definecolor{link}{HTML}{0645AD}
+\usepackage[colorlinks = true,
+            linkcolor = link,
+            urlcolor  = link,
+            citecolor = link,
+            anchorcolor = link]{hyperref}
+\urlstyle{same}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+\DeclareMathOperator*{\minimize}{minimize}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Div}{div}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Curl}{curl}
+\DeclareMathOperator{\Ex}{\mathbb{E}}
+\DeclareMathOperator{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\dotp}{{ \bullet }}
+
+\begin{document}
+\title{\Large Max-Cut and Goemans-Williamson\thanks{Summary for the Approximation Algorithms Seminar 2022.}}
+\author{Marko Lalovic\thanks{\url{mailto:marko.lalovic@tuhh.de}}}
+\maketitle
+\afterpage{\cfoot{\thepage}}
+
+\begin{abstract} This is a short summary of approximation algorithms for the Max-Cut problem of finding a maximum cut of a graph. After introducing the problem and trivial $\frac{1}{2}$-approximation, we summarize the famous semidefinite programming relaxation and hyperplane rounding technique from \cite{GW94} that gives the best known approximation ratio for Max-Cut. We then take a look at the dual problem and some previous results. Taking the dual approach further, using so-called Sum-of-Squares hierarchy framework with Gaussian rounding technique, we arrive at the same approximation ratio for Max-Cut. Finally, we discuss some possible generalizations.
+\end{abstract}
+
+\section{Introduction} Let $G = (V, E)$ be a simple undirected graph with $V := \lbrace 1, \dots, n \rbrace$ and $|E| = m$. For a subset $S \subset V$, we define $cut(S)$ as a subset of edges $E$ having one vertex in $S$ and the other one in $V \setminus S$. We denote the cut size by $f(S) = |cut(S)|$. The {\it Max-Cut problem} is to find a subset $S \subseteq V$ that maximizes the cut size $f(S)$. Max-Cut problem is NP-complete~\cite{Karp72}. 
+
+Given a graph $G=(V,E)$, denote the maximum cut size by $mc(G)$. Given some algorithm that returns the subset $S \subseteq V$, we say that $S$ is an $\alpha$-{\it approximation} of Max-Cut if
+\begin{equation}
+f(S) \geq \alpha \cdot mc(G)
+\label{eq: alpha}
+\end{equation}
+for all graphs $G = (V, E)$ and some approximation ratio $\alpha \in [0, 1]$. If algorithm employed is randomized, meaning $S$ that it returns is a random variable, then we say the same, if \ref{eq: alpha} holds with an expectation taken on the left-hand side. For example, for an algorithm, that assigns each vertex of $V$ to $S$ and $V \setminus S$ independently uniformly at random, we get
+\begin{equation*}
+\Ex[f(S)] = \sum_{i, j} \Prob[(i, j) \in \text{cut}(S)] = \frac{1}{2} \cdot m \geq \frac{1}{2} \cdot mc(G)
+\end{equation*}
+This implies that $S$ is a $\frac{1}{2}-$approximation for Max-Cut. This approximation was first proposed and analyzed by~\cite{Erd67}. In \cite{GW94} they improved this by proposing $\alpha_{GW}$-approximation algorithm with $\alpha_{GW} \geq 0.878$ using semidefinite programming (SDP) and hyperplane rounding technique. The proposed algorithm is also simple to implement~\footnote{Source code: \url{https://github.com/markolalovic/max-cut-sdp}} using off-the-shelf SDP solver.
+
+\section{SDP Relaxation}
+Cuts in the complete graph $K_n$ can be represented by a set of $2^{n - 1}$ matrices $x x^{T}$ of rank one with $x \in \lbrace -1, 1 \rbrace^{n}$. The {\it elliptope} $\mathcal{E}_{n} := \lbrace X \in S_{n} : X_{ii} = 1, \, \, \forall i \rbrace$ is a set of all $n \times n$ correlation matrices, giving the formulation
+\begin{equation*}
+mc(G) =
+\max_{X \in \mathcal{E}_{n}, rk(X) = 1 } \sum_{i, j} \frac{1 - X_{ij}}{2} 
+\end{equation*}
+Letting go of rank one constraint, we get an SDP
+\begin{equation*}
+sdp(G) :=
+\max_{X \in \mathcal{E}_{n}} \sum_{i, j} \frac{1 - X_{ij}}{2}
+\end{equation*}
+Since $\mathcal{E}_{n}$ includes all the matrices of rank one, we have $mc(G) \leq sdp(G)$, implying that SDP is a {\it relaxation}.
+
+\section{Hyperplane Rounding} Solution $X$ that realizes the maximum $sdp(G)$ is a positive semidefinite matrix, that can be decomposed as $X=\sum_{i=1} v_{i}v_{i}^T$ for some unit vectors $v_{i}$. To construct a subset $S \subset V$, select a random unit vector $r \in \mathbb{R}^{n}$ and let $S = \lbrace i \in V : v_{i}^{T}r \geq 0 \rbrace$. Denote the angle between vectors $v_i, v_j$ by $\theta_{i, j}$. 
+
+Since $v_{i}$ are unit vectors $v_{i}^{T} v_{j} = \cos{\theta_{i, j}}$, we can bound the contribution of an edge $(i, j) \in E$ by
+$$
+\Prob[(i, j) \in cut(S)] = 
+\frac{\theta_{i, j}}{\pi}  \geq \alpha_{GW} \cdot
+\frac{1 - v_{i}^{T} v_{j} }{2} 
+$$
+where $\alpha_{GW} = \min_{\theta_{i, j} \in [0, \pi]} \lbrace 
+\frac{2}{\pi}\frac{\theta_{i, j}}{ { 1 - \cos(\theta_{i, j}) }} \rbrace \geq 0.878$. 
+
+Summing up the contributions of all edges, we arrive at the famous result
+\begin{equation*}
+\Ex[f(S)] = \sum_{i, j} \Prob[(i, j) \in cut(S)] \geq \alpha_{GW} \cdot sdp(G)
+\end{equation*}
+
+\section{Dual Problem} 
+Let $L$ be the Laplacian matrix of a graph $G = (V, E)$. The dual problem of SDP relaxation is equivalent to finding maximum eigenvalue of $L$ with smallest added correction $u \in \mathbb{R}^{n}$, under constraint that $\sum_{i} u_{i} = 0$
+\begin{equation*}
+\frac{n}{4} \min_{u: \vect{1}^{T} u = 0} \lambda_{\max}(L + diag(u))
+\end{equation*}
+
+Setting $u = \vect{0}$ and by weak duality we get an upper bound
+\begin{equation*}
+mc(G) \leq sdp(G) \leq \frac{n}{4} \lambda_{\max}(L)
+\end{equation*}
+given earlier in~\cite{MP90}. For 5-cycle $C_{5}$, $\lambda_{\max} = \frac{1}{5}(5 + \sqrt{5})$, giving an upper bound
+\begin{equation*}
+\frac{1}{2}(5 + \sqrt{5})/4 \geq 0.9 \cdot mc(C_{5})
+\end{equation*}
+This bound was studied in~\cite{DP93}.
+
+\section{SoS Relaxation} 
+Now let $x \in \lbrace 0, 1 \rbrace^{n}$ and let $\mathcal{P}_{n}$ be a set of real valued polynomials $p(x)$ of degree at most $d/2$. Let $\tilde{\Ex}: \mathcal{P}_{n} \rightarrow \mathbb{R}$ be some operator over the probability distribution on $x$. We formulate the following optimization problem 
+\begin{align*}
+sos(G) := \ & \max_{\tilde{\Ex}} \ \tilde{\Ex}[ \sum_{i, j} (x_{i} - x_{j})^{2} ] \nonumber\\
+& \text{subject to: } \\[.4em]
+& \qquad \text{(1) $\tilde{\Ex}$ is linear} \qquad \text{(2) $\tilde{\Ex}[1] = 1$} \\[.4em]
+& \qquad \text{(3) $\tilde{\Ex}[p^2] \geq 0$} \qquad \, \, \, \text{(4) $\tilde{\Ex}[x_{i}^{2}p] = \tilde{\Ex}[x_{i}p]$} \\[.4em]
+& \qquad \forall p \in \mathcal{P}_{n}
+\end{align*}
+An operator $\tilde{\Ex}$ that realizes the maximum $sos(G)$ is called {\it pseudo-expectation}, because it only meets a subset of constraints (1)-(3) required to be an actual expectation. The fourth constraint requires $x$ to be a vector $x \in \lbrace 0, 1 \rbrace^{n}$. Given a subset $S$ with maximum cut size $mc(G)$, let $a$ be the indicator vector of $S$ and set $\tilde{\Ex} = a$. Then $\tilde{\Ex}$ satisfies the constraints (1)-(4) and achieves objective value $mc(G)$. In other words, given an expectation $a$, we can build a pseudo-expectation $\tilde{\Ex}$ just by setting $\tilde{\Ex} = a$. Therefore $mc(G) \leq sos(G)$.
+
+This framework is called {\it Sum-of-Squares hierarchy} introduced by \cite{Parillo00} and \cite{Lasserre01}. Increasing the degree $d$, increases the size of the corresponding SDP problem. For $d = n$, the relaxation is exact. We can choose $d=2$ and show that we can get the same $\alpha_{GW}$-approximation as before by rounding the solution of SoS relaxation.
+
+\section{Gaussian Rounding} Let $\tilde{\Ex}$ be solution that realizes the maximum $sos(G)$. Select $y$ to be a Gaussian vector with the mean $\mu = \tilde{\Ex}[x] = \frac{1}{2} \vect{1}$ and covariance matrix $\Sigma = \tilde{\Ex}[(x - \mu)(x - \mu)^{T}]$ and construct a subset $S = \lbrace i \in V : y_{i} \leq \frac{1}{2} \rbrace$. For each edge $(i, j) \in E(G)$, define $\rho_{i, j} = 4 \tilde{\Ex}[x_{i} x_{j}] - 1$. From $(s, t) \overset{\text{i.i.d.}}{\sim} N(0, I)$, setting $u = \rho_{i, j} s + \sqrt{1 - \rho_{i, j}^{2}} t$, gives $\rho_{i, j} = \Ex[u s] = \cos(\theta_{i, j})$. Summing up the contributions, we can show that
+\begin{equation*}
+\Ex[f(S)] = \sum_{i, j}  \Prob[(i, j) \in cut(S)] \geq \alpha_{GW} \cdot 
+sos(G)
+\end{equation*}
+
+\section{Generalizations}
+Given a non-negative weight function $w \in \mathbb{R}^{E}_{+}$ on the edges, $f(S) = \sum_{e \in \text{cut}(S)} w_e$, with no effect on analysis of approximation algorithms presented here. Given arbitrary weight function $w \in \mathbb{R}^{E}$, the analysis has to be adjusted but it is possible to derive a generalization of guarantees presented here. 
+
+Whether increasing degree from $d=2$ to $d=4$ of SoS Relaxation, also improves the approximation, still remains unresolved question.
+
+
+%\bibliographystyle{plainnat}
+% Sorted by date: https://tex.stackexchange.com/questions/377449/sorting-citations-and-bibliography-using-natbib-and-plainnat
+\bibliographystyle{yearnat}
+\bibliography{main}
+\end{document}
