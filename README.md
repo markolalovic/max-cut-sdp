@@ -42,7 +42,7 @@ print('Chosen subset: %s' % np.where(x == 1))
 print('Cut size: %i' % len(xcut) )
 print('Edges of the cut: %s' % xcut )
 ```
-Algorithm is randomized and returns a random cut, but guarantees that `cut-size > 0.878 * max-cut-size`. For example above, the chosen subset and corresponding cut may vary, but the cut size will always be 4:
+Algorithm is randomized and returns a random cut, but guarantees that on average: `cut-size > 0.878 * max-cut-size`. For the trivial example of a cycle on 5 vertices, the chosen subset and corresponding cut may vary, but the return cut will always be of size 4:
 ```
 Chosen subset: [1 4]
 Cut size: 4
