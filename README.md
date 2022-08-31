@@ -6,9 +6,43 @@
 
 ## Introduction
 
-This repository contains a simple implementation [maxcut.py](https://github.com/markolalovic/max-cut-sdp/blob/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/maxcut.py) in Python using CVXPY [1] of Goemans-Williamson algorithm [2] for Max-Cut problem of finding a maximum cut of a graph
+This repository contains a simple implementation [maxcut.py](https://github.com/markolalovic/max-cut-sdp/blob/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/maxcut.py) in Python using CVXPY [1] of Goemans-Williamson algorithm [2] for Max-Cut problem of finding a maximum cut of a graph, that finds the best known approximation for Max-Cut problem in polynomial time.
 
 You can read more in the [summary](https://github.com/markolalovic/max-cut-sdp/raw/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/main.pdf) or check the presentation [slides](https://github.com/markolalovic/max-cut-sdp/raw/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/beamer/slides.pdf) for a quick overview.
+
+## How-To
+Dependencies are `NumPy` and `CVXPY`. They can be installed for example by using Pip:
+```Bash
+pip install numpy
+pip install cvxpy
+```
+
+To find the best known approximation for Max-Cut problem in polynomial time, for example for a cycle on 5 vertices `[0, 1, 2, 3, 4]`, shown in Figure above, run:
+```Python
+## Import the functions
+from maxcut import *
+
+## Define a graph
+n = 5
+edges = [(0, 1), (1, 2), (2, 3), (3, 4), (0, 4)]
+
+## Run Goemans-Williamson algorithm
+x = gw(n, edges)
+
+## Find edges in the cut
+xcut = cut(x, edges)
+
+## Print results
+print('Chosen subset: %s' % np.where(x == 1))
+print('Cut size: %i' % len(xcut) )
+print('Edges of the cut: %s' % xcut )
+```
+Algorithm is randomized and returns a random cut, but guarantees that `cut-size > 0.878 * max-cut-size`. For example above, the chosen subset and corresponding cut may vary, but the cut size will always be 4:
+```
+Chosen subset: [1 4]
+Cut size: 4
+Edges of the cut: [(0, 1), (1, 2), (3, 4), (0, 4)]
+```
 
 ## References
 [1]: Diamond and Boyd. "CVXPY: A Python-embedded modeling language for convex optimization", version 1.2. [https://www.cvxpy.org/](https://www.cvxpy.org/)
