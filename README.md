@@ -1,12 +1,17 @@
 # Max-Cut and Goemans-Williamson
 
 <p align="center">
-<img src="figures/front-figure-crop.png" alt="Max-Cut and SDP Relaxation" width="1500">
+<img src="figures/front-figure-crop.png" alt="Max-Cut and SDP Relaxation" width="600">
+</p>
+
+<p align = "center">
+<strong>Figure 1:</strong> An example of a maximum cut and a set of positive semidefinite matrices.
 </p>
 
 ## Introduction
+This repository contains a simple implementation [maxcut.py](https://github.com/markolalovic/max-cut-sdp/blob/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/maxcut.py) in Python using CVXPY [1] of Goemans-Williamson algorithm [2] for Max-Cut problem of finding a maximum cut of a graph. **Figure 1A** shows maximum cut of a cycle on 5 vertices. 
 
-This repository contains a simple implementation [maxcut.py](https://github.com/markolalovic/max-cut-sdp/blob/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/maxcut.py) in Python using CVXPY [1] of Goemans-Williamson algorithm [2] for Max-Cut problem of finding a maximum cut of a graph, that finds the best known approximation for Max-Cut problem in polynomial time.
+Goemans-Williamson algorithm achieves the best known approximation for Max-Cut problem that runs in polynomial time. It is using semidefinite programming (SDP) and hyperplane rounding technique. The SDP approach is based on representation of cuts by positive semidefinite matrices. **Figure 1B** shows the set of all 3x3 correlation matrices. The vertices (corners) of this set correspond to all the cuts of complete graph on 3 vertices. 
 
 You can read more in the [summary](https://github.com/markolalovic/max-cut-sdp/raw/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/main.pdf) or check the presentation [slides](https://github.com/markolalovic/max-cut-sdp/raw/299c5b53ca27fa8952eca8edd8e67eb1f5cd2982/beamer/slides.pdf) for a quick overview.
 
@@ -17,7 +22,7 @@ pip install numpy
 pip install cvxpy
 ```
 
-To find the best known approximation for Max-Cut problem in polynomial time, for example for a cycle on 5 vertices `[0, 1, 2, 3, 4]`, shown in Figure above, run:
+To find the best known approximation for Max-Cut problem in polynomial time, for example for a cycle on 5 vertices `[0, 1, 2, 3, 4]`, shown in Figure 1A, run:
 ```Python
 ## Import the functions
 from maxcut import *
